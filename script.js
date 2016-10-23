@@ -15,6 +15,10 @@ var ylen = parseInt(canvas.height / dimention);
 var xgap = (canvas.width  % dimention)/2;
 var ygap = (canvas.height % dimention)/2;
 var index;
+var goal_index;
+var move_ctr = -1;
+var bump_ctr = 0;
+var score = 0;
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -31,8 +35,22 @@ document.onkeydown = function(e) {
 
 //////////////////////////////////////////////////////////////////////////////
 
+function pathFinder() {
+  // ...
+}
 function generateMaze() {
-
+  for (var i = 0; i < blocks.length; i++) {
+    if      ((i)%xlen == 0) {
+      if (randomBetween(0,3) == 0) blocks[i].wall[2] = 1;
+    }
+    else if (i > xlen*(ylen-1)) {
+      if (randomBetween(0,3) == 0) blocks[i].wall[3] = 1;
+    }
+    else {
+      if (randomBetween(0,3) == 0) blocks[i].wall[2] = 1;
+      if (randomBetween(0,3) == 0) blocks[i].wall[3] = 1;
+    }
+  }
 }
 function generateBlocks() {
 	for (var i = ygap; i < canvas.height-ygap; i+=dimention) {
@@ -42,6 +60,8 @@ function generateBlocks() {
 	}
 	index = parseInt(((xlen*ylen)/2)-(xlen/2))+1;
 	setCharPos(index);
+  goal_index = parseInt(((xlen*ylen)/2)+(xlen/2))-2;
+  setGoalPos(goal_index);
 }
 function clearCanvas() {
 	context.fillStyle = "#000";
@@ -52,30 +72,58 @@ function randomBetween(min,max) {
 }
 function moveUP() {
 	if (index-xlen >= 0) {
-		blocks[index].isActive = false;
-		index-=xlen; setCharPos(index);
+    if (blocks[index-xlen].wall[2] == 1) {
+      bump_ctr++;
+      blocks[index-xlen].visible[2] = 1;
+    }
+    else {
+      blocks[index].isActive = false;
+      index-=xlen; setCharPos(index);
+    }
 	}
 }
 function moveDOWN() {
 	if (index+xlen <= xlen*ylen-1) {
-			blocks[index].isActive = false;
-			index+=xlen; setCharPos(index);
+    if (blocks[index].wall[2] == 1) {
+      bump_ctr++;
+      blocks[index].visible[2] = 1;
+    }
+    else {
+      blocks[index].isActive = false;
+      index+=xlen; setCharPos(index);
+    }
 	}
 }
 function moveLEFT() {
 	if ((index)%xlen != 0) {
-		blocks[index].isActive = false;
-		index-=1; setCharPos(index);
+    if (blocks[index].wall[3] == 1) {
+      bump_ctr++;
+      blocks[index].visible[3] = 1;
+    }
+    else {
+      blocks[index].isActive = false;
+      index-=1; setCharPos(index);
+    }
 	}
 }
 function moveRIGHT() {
 	if ((index+1)%xlen != 0) {
-			blocks[index].isActive = false;
-			index+=1; setCharPos(index);
+    if (blocks[index+1].wall[3] == 1) {
+      bump_ctr++;
+      blocks[index+1].visible[3] = 1;
+    }
+    else {
+      blocks[index].isActive = false;
+      index+=1; setCharPos(index);
+    }
 	}
 }
 function setCharPos(i) {
+  move_ctr++;
 	blocks[i].isActive = true;
+}
+function setGoalPos(i) {
+  blocks[i].isActive = true;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -85,6 +133,7 @@ function world() {
 	for (var i = 0; i < blocks.length; i++) {
 		blocks[i].update().draw();
 	}
+  console.log('score: '+score+' --- '+'moves : '+move_ctr+' --- '+'bumps : '+bump_ctr);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -94,36 +143,26 @@ function Block(x,y,dim) {
 	this.y = y;
 	this.dim = dim;
 	this.isActive = false;
-	this.radius = 20;
+	this.radius = dim/2-5;
 
-	this.wall = [0,1,0,0];
+	this.wall = [0,0,0,0];
+  this.visible = [0,0,0,0];
 
 	this.update = function() {
 		return this;
 	}
 
 	this.drawWall = function() {
-		context.lineWidth = 5;
+		context.lineWidth = 1;
+    context.lineCap = 'round';
 		context.strokeStyle = "rgba(0,0,0,1)";
-		if (this.wall[0] == 1) {
-			context.beginPath();
-			context.moveTo(this.x,          this.y);
-			context.lineTo(this.x+this.dim, this.y);
-			context.stroke();
-		}
-		if (this.wall[1] == 1) {
-			context.beginPath();
-			context.moveTo(this.x+this.dim, this.y);
-			context.lineTo(this.x+this.dim, this.y+this.dim);
-			context.stroke();
-		}
-		if (this.wall[2] == 1) {
+		if (this.wall[2] == 1 && this.visible[2] == 1) {
 			context.beginPath();
 			context.moveTo(this.x+this.dim, this.y+this.dim);
 			context.lineTo(this.x,          this.y+this.dim);
 			context.stroke();
 		}
-		if (this.wall[3] == 1) {
+		if (this.wall[3] == 1 && this.visible[3] == 1) {
 			context.beginPath();
 			context.moveTo(this.x,          this.y+this.dim);
 			context.lineTo(this.x,          this.y);
@@ -144,7 +183,11 @@ function Block(x,y,dim) {
 	}
 
 	this.draw = function() {
-		this.drawWall();
+
+    context.fillStyle = "rgba(255,255,255,0.2)";
+    context.fillRect(this.x, this.y, this.dim, this.dim);
+
+    this.drawWall();
 		this.drawChar();
 	}
 }

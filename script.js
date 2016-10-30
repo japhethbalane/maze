@@ -16,9 +16,10 @@ var xgap = (canvas.width  % dimention)/2;
 var ygap = (canvas.height % dimention)/2;
 var index;
 var goal_index;
-var move_ctr = -1;
-var bump_ctr = 0;
-var score = 0;
+
+var p1pos = firebase.database().ref('/p1pos/');
+var p2pos = firebase.database().ref('/p2pos/');
+var gpos = firebase.database().ref('/gpos/');
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -74,7 +75,6 @@ function randomBetween(min,max) {
 function moveUP() {
 	if (index-xlen >= 0) {
     if (blocks[index-xlen].wall[2] == 1) {
-      bump_ctr++;
       blocks[index-xlen].visible[2] = 1;
     }
     else {
@@ -86,7 +86,6 @@ function moveUP() {
 function moveDOWN() {
 	if (index+xlen <= xlen*ylen-1) {
     if (blocks[index].wall[2] == 1) {
-      bump_ctr++;
       blocks[index].visible[2] = 1;
     }
     else {
@@ -98,7 +97,6 @@ function moveDOWN() {
 function moveLEFT() {
 	if ((index)%xlen != 0) {
     if (blocks[index].wall[3] == 1) {
-      bump_ctr++;
       blocks[index].visible[3] = 1;
     }
     else {
@@ -110,7 +108,6 @@ function moveLEFT() {
 function moveRIGHT() {
 	if ((index+1)%xlen != 0) {
     if (blocks[index+1].wall[3] == 1) {
-      bump_ctr++;
       blocks[index+1].visible[3] = 1;
     }
     else {
@@ -120,7 +117,6 @@ function moveRIGHT() {
 	}
 }
 function setCharPos(i) {
-  move_ctr++;
 	blocks[i].isActive = true;
 }
 function setGoalPos(i) {
@@ -134,7 +130,7 @@ function world() {
 	for (var i = 0; i < blocks.length; i++) {
 		blocks[i].update().draw();
 	}
-  console.log('score: '+score+' --- '+'moves : '+move_ctr+' --- '+'bumps : '+bump_ctr);
+  console.log("pos1 "+p1pos);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -143,8 +139,6 @@ function Block(x,y,dim) {
 	this.x = x;
 	this.y = y;
 	this.dim = dim;
-	this.isActive = false;
-	this.radius = dim/2-5;
 
 	this.wall = [0,0,0,0];
   this.visible = [0,0,0,0];
@@ -154,7 +148,9 @@ function Block(x,y,dim) {
 	}
 
 	this.drawWall = function() {
-		context.lineWidth = 1;
+		context.lineWidth = 5;
+    context.shadowColor = "#fff";
+    context.shadowBlur = 15;
     context.lineCap = 'round';
 		context.strokeStyle = "rgba(0,0,0,1)";
 		if (this.wall[2] == 1 && this.visible[2] == 1) {
@@ -169,28 +165,27 @@ function Block(x,y,dim) {
 			context.lineTo(this.x,          this.y);
 			context.stroke();
 		}
+    context.shadowBlur = 0;
 		context.lineWidth = 1;
 	}
 
-	this.drawChar = function() {
-		if (this.isActive) {
-			context.fillStyle = 'rgba(255,255,255,0.5)';
-			context.strokeStyle = 'rgba(255,255,255,1)';
-			context.beginPath();
-			context.arc(this.x+this.dim/2, this.y+this.dim/2, this.radius, Math.PI*2, false);
-			context.fill();
-			context.stroke();
-		}
-	}
-
 	this.draw = function() {
-
-    context.fillStyle = "rgba(255,255,255,0.2)";
-    context.fillRect(this.x, this.y, this.dim, this.dim);
-
     this.drawWall();
-		this.drawChar();
 	}
+}
+
+function Character(index) {
+  this.x = 
+  this.radius = dim/2-5;
+  this.i = index;
+
+  this.update = function() {
+    return this;
+  }
+
+  this.draw = function() {
+
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////////

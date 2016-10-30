@@ -6,6 +6,18 @@
 </head>
 <body>
 	<canvas id="maze"></canvas>
-	<script type="text/javascript" src="script.js"></script>
+	<h1>lol</h1>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/annyang/2.6.0/annyang.min.js"></script>
+	<script>
+	if (annyang) {
+	  var commands = {
+	    'hello': function() { alert('Hello world!'); console.log("Hello World!"); }
+	  };
+	  // annyang.addCommands(commands);
+	  annyang.init(commands);
+	  annyang.start();
+	}
+	</script>
+	<!-- <script type="text/javascript" src="script.js"></script> -->
 </body>
 </html>

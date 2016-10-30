@@ -51,6 +51,7 @@ function generateMaze() {
       if (randomBetween(0,3) == 0) blocks[i].wall[3] = 1;
     }
   }
+  pathFinder();
 }
 function generateBlocks() {
 	for (var i = ygap; i < canvas.height-ygap; i+=dimention) {

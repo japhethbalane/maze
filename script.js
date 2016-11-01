@@ -14,6 +14,8 @@ var xlen = parseInt(canvas.width  / dimention);
 var ylen = parseInt(canvas.height / dimention);
 var xgap = (canvas.width  % dimention)/2;
 var ygap = (canvas.height % dimention)/2;
+var character;
+var goal;
 var index;
 var goal_index;
 
@@ -25,13 +27,14 @@ var gpos = firebase.database().ref('/gpos/');
 
 generateBlocks();
 generateMaze();
+generateChars();
 
 document.onkeydown = function(e) {
     	e = e || window.event;
-	    if      (e.keyCode == '38')	 moveUP();
-	    else if (e.keyCode == '40')	 moveDOWN();
-	    else if (e.keyCode == '37')	 moveLEFT();
-	    else if (e.keyCode == '39')	 moveRIGHT();
+	    if      (e.keyCode == '38')	 character.moveUP();
+	    else if (e.keyCode == '40')	 character.moveDOWN();
+	    else if (e.keyCode == '37')	 character.moveLEFT();
+	    else if (e.keyCode == '39')	 character.moveRIGHT();
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -61,9 +64,11 @@ function generateBlocks() {
 		}
 	}
 	index = parseInt(((xlen*ylen)/2)-(xlen/2))+1;
-	setCharPos(index);
   goal_index = parseInt(((xlen*ylen)/2)+(xlen/2))-2;
-  setGoalPos(goal_index);
+}
+function generateChars() {
+  character = new Character(index);
+  goal = new Character(goal_index);
 }
 function clearCanvas() {
 	context.fillStyle = "#000";
@@ -71,56 +76,6 @@ function clearCanvas() {
 }
 function randomBetween(min,max) {
 	return Math.floor((Math.random()*(max - min)+min));
-}
-function moveUP() {
-	if (index-xlen >= 0) {
-    if (blocks[index-xlen].wall[2] == 1) {
-      blocks[index-xlen].visible[2] = 1;
-    }
-    else {
-      blocks[index].isActive = false;
-      index-=xlen; setCharPos(index);
-    }
-	}
-}
-function moveDOWN() {
-	if (index+xlen <= xlen*ylen-1) {
-    if (blocks[index].wall[2] == 1) {
-      blocks[index].visible[2] = 1;
-    }
-    else {
-      blocks[index].isActive = false;
-      index+=xlen; setCharPos(index);
-    }
-	}
-}
-function moveLEFT() {
-	if ((index)%xlen != 0) {
-    if (blocks[index].wall[3] == 1) {
-      blocks[index].visible[3] = 1;
-    }
-    else {
-      blocks[index].isActive = false;
-      index-=1; setCharPos(index);
-    }
-	}
-}
-function moveRIGHT() {
-	if ((index+1)%xlen != 0) {
-    if (blocks[index+1].wall[3] == 1) {
-      blocks[index+1].visible[3] = 1;
-    }
-    else {
-      blocks[index].isActive = false;
-      index+=1; setCharPos(index);
-    }
-	}
-}
-function setCharPos(i) {
-	blocks[i].isActive = true;
-}
-function setGoalPos(i) {
-  blocks[i].isActive = true;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -130,7 +85,10 @@ function world() {
 	for (var i = 0; i < blocks.length; i++) {
 		blocks[i].update().draw();
 	}
-  console.log("pos1 "+p1pos);
+  if (character && goal) {
+    character.update().draw();
+    goal.update().draw();
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -151,8 +109,8 @@ function Block(x,y,dim) {
 		context.lineWidth = 5;
     context.shadowColor = "#fff";
     context.shadowBlur = 15;
-    context.lineCap = 'round';
-		context.strokeStyle = "rgba(0,0,0,1)";
+    context.lineCap = "round";
+		context.strokeStyle = "rgba(255,255,255,1)";
 		if (this.wall[2] == 1 && this.visible[2] == 1) {
 			context.beginPath();
 			context.moveTo(this.x+this.dim, this.y+this.dim);
@@ -175,16 +133,66 @@ function Block(x,y,dim) {
 }
 
 function Character(index) {
-  this.x = 
-  this.radius = dim/2-5;
   this.i = index;
+  this.radius = dimention/2-5;
+
+  this.moveUP = function() {
+  	if (this.i-xlen >= 0) {
+      if (blocks[this.i-xlen].wall[2] == 1) {
+        blocks[this.i-xlen].visible[2] = 1;
+      }
+      else {
+        this.i-=xlen;
+      }
+  	}
+  }
+  this.moveDOWN = function() {
+  	if (this.i+xlen <= xlen*ylen-1) {
+      if (blocks[this.i].wall[2] == 1) {
+        blocks[this.i].visible[2] = 1;
+      }
+      else {
+        this.i+=xlen;
+      }
+  	}
+  }
+  this.moveLEFT = function() {
+  	if ((this.i)%xlen != 0) {
+      if (blocks[this.i].wall[3] == 1) {
+        blocks[this.i].visible[3] = 1;
+      }
+      else {
+        this.i-=1;
+      }
+  	}
+  }
+  this.moveRIGHT = function() {
+  	if ((this.i+1)%xlen != 0) {
+      if (blocks[this.i+1].wall[3] == 1) {
+        blocks[this.i+1].visible[3] = 1;
+      }
+      else {
+        this.i+=1;
+      }
+  	}
+  }
 
   this.update = function() {
+    this.x = blocks[this.i].x + (dimention/2);
+    this.y = blocks[this.i].y + (dimention/2);
     return this;
   }
 
   this.draw = function() {
-
+    context.lineWidth = 5;
+    context.shadowColor = "#fff";
+    context.shadowBlur = 15;
+    context.strokeStyle = "rgba(255,255,255,1)"
+    context.fillStyle = "rgba(255,255,255,0.5)";
+    context.beginPath();
+    context.arc(this.x, this.y, this.radius, Math.PI*2, false);
+    context.stroke();
+    context.fill();
   }
 }
 

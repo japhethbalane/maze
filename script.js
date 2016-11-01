@@ -4,7 +4,7 @@ var canvas = document.getElementById('maze');
 var context = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
-setInterval(world,30);
+// setInterval(world,30);
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -28,6 +28,7 @@ var gpos = firebase.database().ref('/gpos/');
 generateBlocks();
 generateMaze();
 generateChars();
+world();
 
 document.onkeydown = function(e) {
     	e = e || window.event;
@@ -35,6 +36,7 @@ document.onkeydown = function(e) {
 	    else if (e.keyCode == '40')	 character.moveDOWN();
 	    else if (e.keyCode == '37')	 character.moveLEFT();
 	    else if (e.keyCode == '39')	 character.moveRIGHT();
+      world();
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -99,7 +101,7 @@ function Block(x,y,dim) {
 	this.dim = dim;
 
 	this.wall = [0,0,0,0];
-  this.visible = [0,0,0,0];
+  this.visible = [1,1,1,1];
 
 	this.update = function() {
 		return this;

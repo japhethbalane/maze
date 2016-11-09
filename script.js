@@ -4,7 +4,7 @@ var canvas = document.getElementById('maze');
 var context = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
-// setInterval(world,30);
+setInterval(world,30);
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -14,29 +14,29 @@ var xlen = parseInt(canvas.width  / dimention);
 var ylen = parseInt(canvas.height / dimention);
 var xgap = (canvas.width  % dimention)/2;
 var ygap = (canvas.height % dimention)/2;
-var character;
-var goal;
-var index;
-var goal_index;
-
-var p1pos = firebase.database().ref('/p1pos/');
-var p2pos = firebase.database().ref('/p2pos/');
-var gpos = firebase.database().ref('/gpos/');
+var character1;
+var character2;
+var index1;
+var index2;
 
 //////////////////////////////////////////////////////////////////////////////
 
 generateBlocks();
 generateMaze();
 generateChars();
-world();
 
+window.addEventListener("keypress", function(e) {
+    if      (e.keyCode == 119) character1.moveUP();
+    else if (e.keyCode == 115) character1.moveDOWN();
+    else if (e.keyCode == 97)	 character1.moveLEFT();
+    else if (e.keyCode == 100) character1.moveRIGHT();
+});
 document.onkeydown = function(e) {
-    	e = e || window.event;
-	    if      (e.keyCode == '38')	 character.moveUP();
-	    else if (e.keyCode == '40')	 character.moveDOWN();
-	    else if (e.keyCode == '37')	 character.moveLEFT();
-	    else if (e.keyCode == '39')	 character.moveRIGHT();
-      world();
+  	e = e || window.event;
+    if      (e.keyCode == '38')	 character2.moveUP();
+    else if (e.keyCode == '40')	 character2.moveDOWN();
+    else if (e.keyCode == '37')	 character2.moveLEFT();
+    else if (e.keyCode == '39')	 character2.moveRIGHT();
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -65,12 +65,12 @@ function generateBlocks() {
 			blocks.push(new Block(j, i, dimention));
 		}
 	}
-	index = parseInt(((xlen*ylen)/2)-(xlen/2))+1;
-  goal_index = parseInt(((xlen*ylen)/2)+(xlen/2))-2;
+	index1 = parseInt(((xlen*ylen)/2)-(xlen/2))+1;
+  index2 = parseInt(((xlen*ylen)/2)+(xlen/2))-2;
 }
 function generateChars() {
-  character = new Character(index);
-  goal = new Character(goal_index);
+  character1 = new Character(index1);
+  character2 = new Character(index2);
 }
 function clearCanvas() {
 	context.fillStyle = "#000";
@@ -87,9 +87,9 @@ function world() {
 	for (var i = 0; i < blocks.length; i++) {
 		blocks[i].update().draw();
 	}
-  if (character && goal) {
-    character.update().draw();
-    goal.update().draw();
+  if (character1 && character2) {
+    character1.update().draw();
+    character2.update().draw();
   }
 }
 
@@ -101,7 +101,7 @@ function Block(x,y,dim) {
 	this.dim = dim;
 
 	this.wall = [0,0,0,0];
-  this.visible = [1,1,1,1];
+  this.visible = [0,0,0,0];
 
 	this.update = function() {
 		return this;
@@ -110,7 +110,7 @@ function Block(x,y,dim) {
 	this.drawWall = function() {
 		context.lineWidth = 5;
     context.shadowColor = "#fff";
-    context.shadowBlur = 15;
+    context.shadowBlur = 0;
     context.lineCap = "round";
 		context.strokeStyle = "rgba(255,255,255,1)";
 		if (this.wall[2] == 1 && this.visible[2] == 1) {
@@ -188,13 +188,14 @@ function Character(index) {
   this.draw = function() {
     context.lineWidth = 5;
     context.shadowColor = "#fff";
-    context.shadowBlur = 15;
+    context.shadowBlur = 0;
     context.strokeStyle = "rgba(255,255,255,1)"
     context.fillStyle = "rgba(255,255,255,0.5)";
     context.beginPath();
     context.arc(this.x, this.y, this.radius, Math.PI*2, false);
     context.stroke();
     context.fill();
+    context.shadowBlur = 0;
   }
 }
 
